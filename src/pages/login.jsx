@@ -6,8 +6,7 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Backend auth will come later
-    navigate("/billing"); // route added in Step 2
+    navigate("/billing"); 
   };
 
   return (

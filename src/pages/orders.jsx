@@ -1,66 +1,66 @@
 import "../styles/orders.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { fetchOrders } from "../api/api";
 
 export default function Orders() {
-  /* =======================
-     STATE
-  ======================= */
+  const navigate = useNavigate();
+
   const [orders, setOrders] = useState([]);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const rowRefs = useRef([]);
+  const listRef = useRef([]);
 
-  /* =======================
-     FETCH ORDERS (API READY)
-  ======================= */
+  
   useEffect(() => {
-    // fetch("/api/orders")
-    //   .then(res => res.json())
-    //   .then(setOrders);
-
-    // TEMP EMPTY STATE
-    setOrders([]);
+    fetchOrders()
+      .then(setOrders)
+      .catch(console.error);
   }, []);
 
-  /* =======================
-     KEYBOARD NAVIGATION
-  ======================= */
-  const handleKeyDown = (e) => {
-    if (e.key === "ArrowDown") {
-      setActiveIndex((i) => Math.min(i + 1, orders.length - 1));
-    }
-
-    if (e.key === "ArrowUp") {
-      setActiveIndex((i) => Math.max(i - 1, 0));
-    }
-
-    if (e.key === "Enter" && orders[activeIndex]) {
-      // later: navigate to order view / reprint
-      alert(`Open order ID: ${orders[activeIndex].id}`);
-    }
-
-    if (e.key === "Escape") {
-      window.history.back();
-    }
-  };
 
   useEffect(() => {
-    rowRefs.current[activeIndex]?.focus();
-  }, [activeIndex]);
+    const handleKeys = (e) => {
+      if (e.key === "ArrowDown" && orders.length) {
+        setSelectedIndex((i) => (i + 1) % orders.length);
+      }
+
+      if (e.key === "ArrowUp" && orders.length) {
+        setSelectedIndex((i) => (i - 1 + orders.length) % orders.length);
+      }
+
+      if (e.key === "Enter" && orders[selectedIndex]) {
+        navigate(`/orders/${orders[selectedIndex].id}`);
+      }
+
+      if (e.key === "Escape") {
+        navigate("/billing");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeys);
+    return () => window.removeEventListener("keydown", handleKeys);
+  }, [orders, selectedIndex, navigate]);
 
   return (
-    <div className="orders-page" onKeyDown={handleKeyDown} tabIndex={0}>
+    <div className="orders-page">
+
+    
       <header className="orders-header">
-        <h1>Order History</h1>
-        <span className="hint">↑ ↓ Navigate | Enter View | Esc Back</span>
+        <h2>Orders</h2>
+        <span className="orders-hint">
+          ↑ ↓ Navigate • Enter View • Esc Back
+        </span>
       </header>
 
+    
       <div className="orders-table">
-        <div className="orders-head">
+        <div className="orders-row orders-head">
           <div>Order ID</div>
           <div>Customer</div>
           <div>Date</div>
           <div>Total</div>
+          <div>Status</div>
         </div>
 
         {orders.length === 0 && (
@@ -72,16 +72,21 @@ export default function Orders() {
         {orders.map((order, index) => (
           <div
             key={order.id}
-            ref={(el) => (rowRefs.current[index] = el)}
-            tabIndex={-1}
+            ref={(el) => (listRef.current[index] = el)}
             className={`orders-row ${
-              index === activeIndex ? "active" : ""
+              index === selectedIndex ? "active" : ""
             }`}
+            onClick={() => navigate(`/orders/${order.id}`)}
           >
             <div>{order.id}</div>
             <div>{order.customerName}</div>
-            <div>{order.date}</div>
-            <div>₹{order.total}</div>
+
+            <div>
+              {new Date(order.billingDate).toLocaleDateString("en-IN")}
+            </div>
+
+            <div>₹{order.total.toFixed(2)}</div>
+            <div>{order.status}</div>
           </div>
         ))}
       </div>

@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Billing from "./pages/Billing";
-import Orders from "./pages/Orders";
+import Login from "./pages/login.jsx";
+import Billing from "./pages/Billing.jsx";
+import Orders from "./pages/orders.jsx";
+import OrderDetails from "./pages/OrderDetails.jsx";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/billing" element={<Billing />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/orders/:id" element={<OrderDetails />} />
       </Routes>
     </BrowserRouter>
   );
